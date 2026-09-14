@@ -1,0 +1,24 @@
+<div class="app-layout">
+  <header class="app-navbar">
+    <div class="navbar-brand">
+      <div class="brand-logo">⚡</div>
+      <div class="brand-text">
+        <span class="brand-title">PDV Local</span>
+        <span class="brand-subtitle">ASP.NET Core 10 + Angular 20</span>
+      </div>
+    </div>
+
+    <nav class="navbar-nav">
+      <a routerLink="/pdv" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🖥️</span> PDV (Caixa)
+      </a>
+      <a routerLink="/produtos" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📦</span> Cadastro de Produtos
+      </a>
+    </nav>
+  </header>
+
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

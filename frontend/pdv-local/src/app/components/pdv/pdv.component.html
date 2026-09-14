@@ -1,0 +1,176 @@
+<div class="pdv-container">
+  <!-- Top Bar / Sync Status Badges -->
+  <div class="pdv-header-info">
+    <div class="status-group">
+      <!-- Central Server Badge -->
+      <div class="status-badge" [ngClass]="{'online': statusSync.servidorCentralOnline, 'offline': !statusSync.servidorCentralOnline}">
+        <span class="status-dot"></span> 
+        Servidor Central: <strong>{{ statusSync.servidorCentralOnline ? 'ONLINE' : 'OFFLINE (Contingência)' }}</strong>
+      </div>
+
+      <!-- Pending Sales Badge -->
+      <div class="status-badge sync-pending" [ngClass]="{'has-pending': statusSync.vendasPendentesCount > 0}">
+        <span class="sync-icon">📦</span>
+        Pendentes de Sincronização: <strong>{{ statusSync.vendasPendentesCount }}</strong>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="quick-actions">
+      <button 
+        class="btn-sync" 
+        (click)="forcarSincronizacao()" 
+        [disabled]="sincronizandoManual || !statusSync.servidorCentralOnline || statusSync.vendasPendentesCount === 0"
+        title="Enviar vendas armazenadas no caixa local para o Servidor Central da loja"
+      >
+        <span class="icon">⚡</span> 
+        <span *ngIf="!sincronizandoManual">Sincronizar Agora</span>
+        <span *ngIf="sincronizandoManual">Enviando...</span>
+      </button>
+
+      <button class="btn-secondary" (click)="carregarProdutos()">
+        <span class="icon">🔄</span> Produtos
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner Message -->
+  <div *ngIf="!statusSync.servidorCentralOnline" class="contingency-banner">
+    ⚠️ <strong>MODO DE CONTINGÊNCIA ATIVO:</strong> O Servidor Central está temporariamente desconectado. Suas vendas estão sendo gravadas no banco seguro do caixa local (`pdv_caixa.db`) e serão sincronizadas automaticamente quando a conexão retornar.
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="pdv-grid">
+    <!-- Left Column: Catalog & Search -->
+    <div class="catalog-section">
+      <div class="section-card">
+        <div class="search-box">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="🔍 Buscar produto por nome..."
+            [(ngModel)]="termoBusca"
+          />
+        </div>
+
+        <div *ngIf="carregando" class="loading-state">
+          <div class="spinner"></div>
+          <p>Carregando catálogo de produtos...</p>
+        </div>
+
+        <div *ngIf="!carregando && produtosFiltrados.length === 0" class="empty-state">
+          <p>Nenhum produto encontrado.</p>
+        </div>
+
+        <div *ngIf="!carregando && produtosFiltrados.length > 0" class="product-grid">
+          <div *ngFor="let p of produtosFiltrados" class="product-card">
+            <div class="product-info">
+              <span class="product-id">#{{ p.id }}</span>
+              <h3 class="product-name">{{ p.nome }}</h3>
+              <span class="product-price">R$ {{ p.preco.toFixed(2) }}</span>
+            </div>
+            <button class="btn-add" (click)="adicionarAoCarrinho(p)">
+              + Adicionar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Shopping Cart & Checkout -->
+    <div class="cart-section">
+      <div class="section-card cart-card">
+        <div class="cart-header">
+          <h2>🛒 Carrinho de Compras</h2>
+          <span class="cart-badge">{{ totalItens }} {{ totalItens === 1 ? 'item' : 'itens' }}</span>
+        </div>
+
+        <!-- Success Sale Toast / Banner -->
+        <div *ngIf="vendaFinalizadaSucesso" class="success-alert">
+          <h4>✅ Venda Concluída no Caixa!</h4>
+          <p>Código: <strong>{{ vendaFinalizadaSucesso.codigoVenda }}</strong></p>
+          <p>Total: <strong>R$ {{ vendaFinalizadaSucesso.total.toFixed(2) }}</strong></p>
+          <p class="sync-status-label">
+            Status: 
+            <span *ngIf="vendaFinalizadaSucesso.sincronizado" class="badge-synced">🟢 Sincronizada com o Servidor Central</span>
+            <span *ngIf="!vendaFinalizadaSucesso.sincronizado" class="badge-offline">📦 Salva na Contingência Local</span>
+          </p>
+        </div>
+
+        <!-- Feedback Alert -->
+        <div *ngIf="mensagemFeedback && !vendaFinalizadaSucesso" class="info-alert">
+          {{ mensagemFeedback }}
+        </div>
+
+        <!-- Cart Items List -->
+        <div class="cart-items-container">
+          <div *ngIf="carrinho.length === 0" class="empty-cart">
+            <div class="empty-icon">📦</div>
+            <p>O carrinho está vazio</p>
+            <small>Clique em "+ Adicionar" nos produtos à esquerda</small>
+          </div>
+
+          <div *ngIf="carrinho.length > 0" class="cart-table-wrapper">
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Qtd</th>
+                  <th>Preço Un.</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of carrinho">
+                  <td class="item-name">{{ item.produto.nome }}</td>
+                  <td class="item-qty">
+                    <div class="qty-controls">
+                      <button class="btn-qty" (click)="alterarQuantidade(item, -1)">-</button>
+                      <span class="qty-value">{{ item.quantidade }}</span>
+                      <button class="btn-qty" (click)="alterarQuantidade(item, 1)">+</button>
+                    </div>
+                  </td>
+                  <td class="item-price">R$ {{ item.produto.preco.toFixed(2) }}</td>
+                  <td class="item-subtotal">R$ {{ item.subtotal.toFixed(2) }}</td>
+                  <td>
+                    <button class="btn-remove" (click)="removerItem(item)" title="Remover item">✕</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cart Summary & Checkout Button -->
+        <div class="cart-footer">
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <span>R$ {{ totalCarrinho.toFixed(2) }}</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>TOTAL:</span>
+            <span class="total-amount">R$ {{ totalCarrinho.toFixed(2) }}</span>
+          </div>
+
+          <div class="cart-actions">
+            <button 
+              class="btn-danger" 
+              (click)="limparCarrinho()" 
+              [disabled]="carrinho.length === 0"
+            >
+              Limpar
+            </button>
+            <button 
+              class="btn-checkout" 
+              (click)="finalizarVenda()" 
+              [disabled]="carrinho.length === 0"
+            >
+              ⚡ Finalizar Venda
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

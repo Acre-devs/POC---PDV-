@@ -1,0 +1,107 @@
+<div class="produtos-container">
+  <div class="produtos-grid">
+    <!-- Cadastro Form Card -->
+    <div class="section-card form-card">
+      <h2>✨ Novo Produto</h2>
+      <p class="section-subtitle">Cadastre um novo item no catálogo do PDV</p>
+
+      <div *ngIf="mensagemSucesso" class="alert alert-success">
+        ✅ {{ mensagemSucesso }}
+      </div>
+
+      <div *ngIf="mensagemErro" class="alert alert-danger">
+        ⚠️ {{ mensagemErro }}
+      </div>
+
+      <form (ngSubmit)="cadastrarProduto()" class="product-form">
+        <div class="form-group">
+          <label for="nome">Nome do Produto</label>
+          <input
+            id="nome"
+            type="text"
+            class="form-control"
+            placeholder="Ex: Coca-Cola 2L"
+            [(ngModel)]="novoNome"
+            name="nome"
+            required
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="preco">Preço (R$)</label>
+            <input
+              id="preco"
+              type="number"
+              step="0.01"
+              min="0.01"
+              class="form-control"
+              placeholder="0,00"
+              [(ngModel)]="novoPreco"
+              name="preco"
+              required
+            />
+          </div>
+
+          <div class="form-group flex-checkbox">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="novoAtivo"
+                name="ativo"
+              />
+              <span>Ativo no PDV</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="salvando">
+          <span *ngIf="!salvando">💾 Salvar Produto</span>
+          <span *ngIf="salvando">Gravando...</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Product List Table Card -->
+    <div class="section-card list-card">
+      <div class="card-header">
+        <h2>📋 Produtos Cadastrados</h2>
+        <span class="badge-count">{{ produtos.length }} cadastrados</span>
+      </div>
+
+      <div *ngIf="carregando" class="loading-state">
+        <div class="spinner"></div>
+        <p>Carregando tabela de produtos...</p>
+      </div>
+
+      <div *ngIf="!carregando && produtos.length === 0" class="empty-state">
+        <p>Nenhum produto cadastrado no banco de dados.</p>
+      </div>
+
+      <div *ngIf="!carregando && produtos.length > 0" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Preço</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of produtos">
+              <td class="col-id">#{{ p.id }}</td>
+              <td class="col-nome">{{ p.nome }}</td>
+              <td class="col-preco">R$ {{ p.preco.toFixed(2) }}</td>
+              <td class="col-status">
+                <span class="badge-status" [ngClass]="p.ativo ? 'badge-ativo' : 'badge-inativo'">
+                  {{ p.ativo ? 'Ativo' : 'Inativo' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

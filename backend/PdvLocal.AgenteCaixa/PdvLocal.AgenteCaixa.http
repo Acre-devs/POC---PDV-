@@ -1,0 +1,6 @@
+@PdvLocal.AgenteCaixa_HostAddress = http://localhost:5100
+
+GET {{PdvLocal.AgenteCaixa_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

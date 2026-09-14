@@ -1,0 +1,6 @@
+@PdvLocal.Api_HostAddress = http://localhost:5039
+
+GET {{PdvLocal.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

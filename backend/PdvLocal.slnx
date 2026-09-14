@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="PdvLocal.AgenteCaixa/PdvLocal.AgenteCaixa.csproj" />
+  <Project Path="PdvLocal.Api/PdvLocal.Api.csproj" />
+  <Project Path="PdvLocal.Application/PdvLocal.Application.csproj" />
+  <Project Path="PdvLocal.Domain/PdvLocal.Domain.csproj" />
+  <Project Path="PdvLocal.Infrastructure/PdvLocal.Infrastructure.csproj" />
+  <Project Path="PdvLocal.Servidor/PdvLocal.Servidor.csproj" />
+</Solution>
